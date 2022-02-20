@@ -1,9 +1,12 @@
 package com.example.githubapp.data.model
 
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 
-data class Item(
+@Entity(tableName = "user_table")
+data class UserItem(
     @SerializedName("avatar_url")
     val avatarUrl: String?,
     @SerializedName("events_url")
@@ -19,6 +22,7 @@ data class Item(
     @SerializedName("html_url")
     val htmlUrl: String?,
     @SerializedName("id")
+    @PrimaryKey(autoGenerate = false)
     val id: Int?,
     @SerializedName("login")
     val login: String?,

@@ -1,8 +1,9 @@
 package com.example.githubapp.di
 
 import android.content.Context
+import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.example.githubapp.BuildConfig
-import com.example.githubapp.data.GithubService
+import com.example.githubapp.data.remote.GithubService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -38,6 +39,7 @@ class AppModule {
     ): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(httpLoggingInterceptor)
+            .addInterceptor(ChuckerInterceptor(appContext))
             .build()
     }
 
