@@ -2,6 +2,7 @@ package com.example.githubapp.data.repository
 
 import androidx.paging.PagingSource
 import com.example.githubapp.data.model.SearchUser
+import com.example.githubapp.data.model.UserDetail
 import com.example.githubapp.data.model.UserItem
 import com.example.githubapp.data.remote.GithubService
 import com.example.githubapp.data.remote.SearchPagingSource
@@ -13,4 +14,7 @@ class UserRepositoryImpl constructor(private val githubService: GithubService) :
         return SearchPagingSource(query, githubService)
     }
 
+    override suspend fun getUserDetails(userName: String): UserDetail {
+        TODO()
+    }
 }

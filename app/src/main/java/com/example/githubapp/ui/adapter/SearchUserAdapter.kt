@@ -9,11 +9,11 @@ import com.bumptech.glide.Glide
 import com.example.githubapp.data.model.UserItem
 import com.example.githubapp.databinding.LayoutItemUserBinding
 
-class SearchUserAdapter: PagingDataAdapter<UserItem, SearchUserAdapter.SearchUserViewHolder>(UserComparator) {
+class SearchUserAdapter(private val onItemClicked: (UserItem) -> Unit): PagingDataAdapter<UserItem, SearchUserAdapter.SearchUserViewHolder>(UserComparator) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchUserViewHolder {
         val binding = LayoutItemUserBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return SearchUserViewHolder(binding)
+        return SearchUserViewHolder(binding, onItemClicked)
     }
 
     override fun onBindViewHolder(holder: SearchUserViewHolder, position: Int) {
@@ -21,15 +21,18 @@ class SearchUserAdapter: PagingDataAdapter<UserItem, SearchUserAdapter.SearchUse
         holder.bind(item)
     }
 
-    class SearchUserViewHolder(private val binding: LayoutItemUserBinding): RecyclerView.ViewHolder(binding.root) {
+    class SearchUserViewHolder(private val binding: LayoutItemUserBinding, private val onItemClicked: (UserItem) -> Unit): RecyclerView.ViewHolder(binding.root) {
         fun bind(item: UserItem?) {
-            item?.let {
+            item?.let { data ->
                 Glide.with(itemView)
-                    .load(it.avatarUrl)
+                    .load(data.avatarUrl)
                     .into(binding.ivAvatar)
-                binding.tvName.text = it.login
-                binding.tvGithubUsername.text = it.id.toString()
-                binding.tvGithubUrl.text = it.htmlUrl
+                binding.apply {
+                    tvName.text = data.login
+                    tvGithubUsername.text = data.id.toString()
+                    tvGithubUrl.text = data.htmlUrl
+                    parent.setOnClickListener { onItemClicked(data) }
+                }
             }
         }
     }

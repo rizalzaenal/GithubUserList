@@ -13,8 +13,8 @@ interface GithubService {
     suspend fun searchUser(
         @Query("q") query: String,
         @Query("page") page: Int,
-        @Query("per_page") sizePerPage: Int
-    ): SearchUser
+        @Query("per_page") sizePerPage: Int = 10
+    ): Response<SearchUser>
 
     @GET("users/{username}")
     suspend fun userDetail(@Path("username") userName: String): Response<UserDetail>

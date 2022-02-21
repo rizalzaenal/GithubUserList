@@ -10,6 +10,7 @@
         <entry key="app/src/main/res/layout/fragment_search_user.xml" value="0.25" />
         <entry key="app/src/main/res/layout/item_user.xml" value="0.33" />
         <entry key="app/src/main/res/layout/layout_item_user.xml" value="0.32763157894736844" />
+        <entry key="app/src/main/res/layout/layout_paging_state.xml" value="0.32763157894736844" />
       </map>
     </option>
   </component>
