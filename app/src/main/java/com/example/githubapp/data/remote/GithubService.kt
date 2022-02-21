@@ -17,6 +17,6 @@ interface GithubService {
     ): Response<SearchUser>
 
     @GET("users/{username}")
-    suspend fun userDetail(@Path("username") userName: String): Response<UserDetail>
+    suspend fun userDetail(@Path("username") userName: String): UserDetail
 
 }

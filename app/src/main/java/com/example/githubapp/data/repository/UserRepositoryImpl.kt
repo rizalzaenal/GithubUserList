@@ -15,6 +15,6 @@ class UserRepositoryImpl constructor(private val githubService: GithubService) :
     }
 
     override suspend fun getUserDetails(userName: String): UserDetail {
-        TODO()
+        return githubService.userDetail(userName)
     }
 }

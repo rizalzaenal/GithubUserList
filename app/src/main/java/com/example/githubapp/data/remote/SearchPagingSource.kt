@@ -19,7 +19,7 @@ class SearchPagingSource(private val query: String, private val githubService: G
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, UserItem> {
         return try {
             val pageNumber = params.key ?: 1
-            val response = githubService.searchUser(query, pageNumber, params.loadSize)
+            val response = githubService.searchUser(query, pageNumber)
             if (response.isSuccessful) {
                 val nextPageKey = calculateNextPage(pageNumber, response.body()?.totalCount ?: 0, params.loadSize)
                 LoadResult.Page(response.body()?.userItems ?: listOf(), null, nextPageKey)

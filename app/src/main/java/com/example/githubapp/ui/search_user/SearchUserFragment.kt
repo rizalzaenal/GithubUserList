@@ -21,7 +21,9 @@ import com.example.githubapp.data.util.convertException
 import com.example.githubapp.databinding.FragmentSearchUserBinding
 import com.example.githubapp.ui.adapter.SearchLoadStateAdapter
 import com.example.githubapp.ui.adapter.SearchUserAdapter
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -31,7 +33,7 @@ class SearchUserFragment: Fragment(R.layout.fragment_search_user) {
     private val binding: FragmentSearchUserBinding get() = _binding!!
     private val viewModel: SearchUserViewModel by viewModels()
     private val searchUserAdapter = SearchUserAdapter {
-        Toast.makeText(requireContext(), it.login, Toast.LENGTH_SHORT).show()
+        viewModel.getUserDetailData(it.login ?: return@SearchUserAdapter)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -67,6 +69,26 @@ class SearchUserFragment: Fragment(R.layout.fragment_search_user) {
                     }
             }
         }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.userDetailFlow
+                    .collect {
+                        when (it) {
+                            is UIState.Success -> {
+                                val text = "Name: ${it.data.name}\nEmail: ${it.data.email ?: "Not defined"}, Created at: ${it.data.createdAt}"
+                                Snackbar.make(binding.root, text, Snackbar.LENGTH_LONG).show()
+                                viewModel.setDataShown()
+                            }
+                            is UIState.Error -> {
+                                Snackbar.make(binding.root, it.throwable.localizedMessage ?: "", Snackbar.LENGTH_LONG).show()
+                                viewModel.setDataShown()
+                            }
+                            else -> {}
+                        }
+                    }
+            }
+        }
     }
 
     private fun initRecyclerView() {
@@ -83,7 +105,7 @@ class SearchUserFragment: Fragment(R.layout.fragment_search_user) {
                         binding.errorLayout.root.visibility = View.GONE
                     }
                     is LoadState.Error -> {
-                        binding.swipeRefresh.isRefreshing = true
+                        binding.swipeRefresh.isRefreshing = false
                         val errorData = convertException((it.refresh as LoadState.Error).error)
                         binding.errorLayout.root.visibility = View.VISIBLE
                         binding.errorLayout.tvMessage.text = errorData.message
