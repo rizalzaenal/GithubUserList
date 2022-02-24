@@ -2,4 +2,7 @@
     <string name="app_name">Github App</string>
     <string name="search_user">Search User</string>
     <string name="retry">Retry</string>
+    <string name="name">Name: %s</string>
+    <string name="email">Email: %s</string>
+    <string name="created">Created: %s</string>
 </resources>

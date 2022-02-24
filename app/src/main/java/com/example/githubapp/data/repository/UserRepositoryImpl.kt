@@ -10,8 +10,8 @@ import retrofit2.Response
 
 class UserRepositoryImpl constructor(private val githubService: GithubService) : UserRepository {
 
-    override fun getPagingSource(query: String): PagingSource<Int, UserItem> {
-        return SearchPagingSource(query, githubService)
+    override fun getPagingSource(): PagingSource<String, UserItem> {
+        return SearchPagingSource(githubService)
     }
 
     override suspend fun getUserDetails(userName: String): UserDetail {

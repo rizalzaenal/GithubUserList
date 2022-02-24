@@ -8,7 +8,7 @@ import retrofit2.Response
 
 interface UserRepository {
 
-    fun getPagingSource(query: String): PagingSource<Int, UserItem>
+    fun getPagingSource(): PagingSource<String, UserItem>
     suspend fun getUserDetails(userName: String): UserDetail
 
 }

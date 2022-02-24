@@ -3,6 +3,5 @@
     <item
         android:drawable="@drawable/line"
         android:left="16dp"
-        android:right="16dp"
-        android:top="16dp"/>
+        android:right="16dp" />
 </layer-list>

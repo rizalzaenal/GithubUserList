@@ -1,9 +1,7 @@
 package com.example.githubapp.ui.search_user
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
-import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
@@ -12,7 +10,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.paging.LoadState
-import androidx.paging.filter
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -25,10 +22,12 @@ import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class SearchUserFragment: Fragment(R.layout.fragment_search_user) {
+class SearchUserFragment : Fragment(R.layout.fragment_search_user) {
     private var _binding: FragmentSearchUserBinding? = null
     private val binding: FragmentSearchUserBinding get() = _binding!!
     private val viewModel: SearchUserViewModel by viewModels()
@@ -42,19 +41,10 @@ class SearchUserFragment: Fragment(R.layout.fragment_search_user) {
         initRecyclerView()
         initObservers()
 
-        binding.edittext.setOnEditorActionListener { v, actionId, event ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH && v.text.isNotBlank()) {
-                viewModel.searchNewQuery(v.text.toString())
-                true
-            } else {
-                false
-            }
-        }
-
         binding.swipeRefresh.setOnRefreshListener {
             if (searchUserAdapter.itemCount > 0) {
                 searchUserAdapter.refresh()
-            }else {
+            } else {
                 binding.swipeRefresh.isRefreshing = false
             }
         }
@@ -73,18 +63,15 @@ class SearchUserFragment: Fragment(R.layout.fragment_search_user) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.userDetailFlow
+                    .filter { it.shouldShown }
                     .collect {
-                        when (it) {
-                            is UIState.Success -> {
-                                val text = "Name: ${it.data.name}\nEmail: ${it.data.email ?: "Not defined"}, Created at: ${it.data.createdAt}"
-                                Snackbar.make(binding.root, text, Snackbar.LENGTH_LONG).show()
-                                viewModel.setDataShown()
-                            }
-                            is UIState.Error -> {
-                                Snackbar.make(binding.root, it.throwable.localizedMessage ?: "", Snackbar.LENGTH_LONG).show()
-                                viewModel.setDataShown()
-                            }
-                            else -> {}
+                        if (it.errorMessage.isEmpty()) {
+                            val toastText = getString(R.string.name, it.name) +
+                                    "\n${getString(R.string.email, it.email)} - " +
+                                    getString(R.string.created, it.createdAt)
+                            Toast.makeText(requireContext(), toastText, Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(requireContext(), it.errorMessage, Toast.LENGTH_LONG).show()
                         }
                     }
             }
@@ -93,8 +80,10 @@ class SearchUserFragment: Fragment(R.layout.fragment_search_user) {
 
     private fun initRecyclerView() {
         binding.rvSearch.apply {
-            val concatAdapter = searchUserAdapter.withLoadStateFooter(SearchLoadStateAdapter(searchUserAdapter::retry))
-            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+            val concatAdapter =
+                searchUserAdapter.withLoadStateFooter(SearchLoadStateAdapter(searchUserAdapter::retry))
+            layoutManager =
+                LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
             adapter = concatAdapter
             addDecoration(this)
 
@@ -109,6 +98,7 @@ class SearchUserFragment: Fragment(R.layout.fragment_search_user) {
                         val errorData = convertException((it.refresh as LoadState.Error).error)
                         binding.errorLayout.root.visibility = View.VISIBLE
                         binding.errorLayout.tvMessage.text = errorData.message
+                        binding.errorLayout.tvDocumentationUrl.text = errorData.documentationUrl
                         binding.errorLayout.btnRetry.setOnClickListener { searchUserAdapter.retry() }
                     }
                     else -> {

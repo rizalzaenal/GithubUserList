@@ -1,5 +1,7 @@
 package com.example.githubapp.ui.adapter
 
+import android.content.Intent
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
@@ -32,6 +34,7 @@ class SearchUserAdapter(private val onItemClicked: (UserItem) -> Unit): PagingDa
                     tvGithubUsername.text = data.id.toString()
                     tvGithubUrl.text = data.htmlUrl
                     parent.setOnClickListener { onItemClicked(data) }
+                    tvGithubUrl.setOnClickListener { it.context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(data.htmlUrl))) }
                 }
             }
         }

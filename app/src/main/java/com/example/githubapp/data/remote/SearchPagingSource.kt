@@ -4,25 +4,35 @@ import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.githubapp.data.model.UserItem
-import com.example.githubapp.data.util.calculateNextPage
+import com.example.githubapp.data.util.LinkHeaderParser
+import com.example.githubapp.data.util.replaceNull
 import retrofit2.HttpException
+import retrofit2.Response
 
-class SearchPagingSource(private val query: String, private val githubService: GithubService) :
-    PagingSource<Int, UserItem>() {
-    override fun getRefreshKey(state: PagingState<Int, UserItem>): Int? {
+class SearchPagingSource(private val githubService: GithubService) :
+    PagingSource<String, UserItem>() {
+    override fun getRefreshKey(state: PagingState<String, UserItem>): String? {
         return state.anchorPosition?.let { anchorPosition ->
             val anchorPage = state.closestPageToPosition(anchorPosition)
-            anchorPage?.prevKey?.plus(1) ?: anchorPage?.nextKey?.minus(1)
+            anchorPage?.prevKey ?: ""
         }
     }
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, UserItem> {
+    override suspend fun load(params: LoadParams<String>): LoadResult<String, UserItem> {
         return try {
-            val pageNumber = params.key ?: 1
-            val response = githubService.searchUser(query, pageNumber)
+            val currentKey = params.key ?: ""
+            val response: Response<List<UserItem>> = if (currentKey.isEmpty()) {
+                githubService.users()
+            } else {
+                githubService.users(currentKey)
+            }
             if (response.isSuccessful) {
-                val nextPageKey = calculateNextPage(pageNumber, response.body()?.totalCount ?: 0, params.loadSize)
-                LoadResult.Page(response.body()?.userItems ?: listOf(), null, nextPageKey)
+                val linkHeader = response.headers()["Link"]
+                Log.d("SearchPagingSource", linkHeader.replaceNull())
+                //val dummyKey = "https://api.github.com/users?since=46"
+                val nextPageKey = LinkHeaderParser(linkHeader).nextUrl
+                Log.d("SearchPagingSource", nextPageKey.replaceNull())
+                LoadResult.Page(response.body() ?: listOf(), null, nextPageKey)
             }else {
                 LoadResult.Error(HttpException(response))
             }
