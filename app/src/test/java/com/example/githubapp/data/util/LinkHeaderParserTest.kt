@@ -14,6 +14,15 @@ class LinkHeaderParserTest {
     }
 
     //Given
+    private val headerLinkNoNext = "<https://api.github.com/users?since=46>; rel=\"last\", <https://api.github.com/users{?since}>; rel=\"first\""
+    private val noNextParser = LinkHeaderParser(headerLinkNoNext)
+
+    @Test
+    fun assert_next_link_is_null_if_no_next_link() {
+        assertEquals(null, noNextParser.nextUrl)
+    }
+
+    //Given
     private val headerLink = "<https://api.github.com/users?since=46>; rel=\"next\", <https://api.github.com/users{?since}>; rel=\"first\""
     private val parser = LinkHeaderParser(headerLink)
 
